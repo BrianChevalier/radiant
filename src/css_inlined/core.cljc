@@ -2,24 +2,64 @@
   (:require [clojure.string :as s]
             [clojure.walk :as w]))
 
+(defn- normalize-css-key
+  "Normalize css keyword to string"
+  [k]
+  (cond
+    (keyword? k) (name k)
+    (string? k)  k))
+
+(defn- normalize-css-keys
+  "Normalize css key(s) to vector of strings"
+  [k]
+  (cond
+    (coll? k) (map normalize-css-key k)
+    :else (normalize-css-keys [k])))
+
 (defn- kv->css-attrs
   "Take a vector with a key-value pair and create css key: value
   pair for css string"
   [[k v]]
-  (str (name k) ":" (name v)))
+  (str (normalize-css-key k) ":" (name v)))
+
+;; Creates selectors
+(defn- class-selector
+  [cls]
+  (str "." cls))
+
+(defn- pseudo-class-selector
+  [sel]
+  (let [{:keys [cls pseudo]} sel]
+    (str "." cls ":" pseudo)))
+
+(defn- element-tag-selector
+  [tags]
+  (s/join ", " (normalize-css-keys tags)))
+
+(defn- element-tag-pseudo-class-selector
+  [sel]
+  (let [tags (get-in sel [:cls :tags])
+        pseudo (:pseudo sel)]
+    (s/join ", "
+            (for [tag tags]
+                (str (normalize-css-key tag) ":" pseudo)))))
+
+(defn- selector
+  "Normalizes call to create a CSS selector depending on the input
+  Can create a class selector, pseudo-class selector, etc."
+  [sel]
+  (cond
+    (string? sel)           (class-selector sel)
+    (and (contains? sel :pseudo) (contains? (:cls sel) :tags)) (element-tag-pseudo-class-selector sel)
+    (contains? sel :pseudo) (pseudo-class-selector sel)
+    (contains? sel :tags)   (element-tag-selector (:tags sel))))
+
 
 (defn- css-body
   "Create the non-selector portion of a CSS map"
   [m]
   (str "{" (s/join ";" (map kv->css-attrs m)) "}"))
 
-(defn- class-selector
-  [cls]
-  (str "." cls))
-
-(defn- pseudo-class-selector
-  [cls pseudo]
-  (str (class-selector cls) ":" pseudo))
 
 (defmulti css
   "A function that dispatches on :style or a :style namespaced key
@@ -27,18 +67,33 @@
   Extend this multimethod to add additional styles to extract from a hiccup tree
   The function should take a CSS class selector `cls`, the dispatch key
   (i.e. :style, :style/dark), and a map of key-value CSS styles"
-  (fn [_cls k _map] k))
+  (fn
+    ([_] (-> :normalize))
+    ([_cls k _map] k)))
+
+(defmethod css :normalize
+  ;; (css
+  ;; {:h1
+  ;; {:style {:color :red}}
+  ;; [:h2 :h3 :h4 :h5 :h6]
+  ;; {:style/hover {:color :red}
+  ;;  :style/dark {:color :blue}}})
+  [m]
+  (s/join "\n"
+   (mapcat (fn [[tag kv]]
+             (map (fn [[k v]] (css {:tags tag} k v)) kv))
+           m)))
 
 (defmethod css :style
   [cls _ m]
   (str
-    (class-selector cls)
+    (selector cls)
     (css-body m)))
 
 ;; Pseudo class selectors
 (defn pseudo [cls k m]
   (str
-    (pseudo-class-selector cls (name k))
+    (selector {:cls cls :pseudo (name k)})
     (css-body m)))
 
 (defmethod css :style/hover          [cls k m]  (pseudo cls k m))
@@ -184,3 +239,32 @@
     [:div
      [:style css]
      hiccup]))
+
+(comment
+  ;; Extract inline styles, wrap in wrapper :div, and add generated css
+  ;; in a :style tag
+  (def example-hiccup
+    [:div
+     {:style
+      {:background-color "white"
+       :color "black"}
+      :style/dark
+      {:background-color "black"
+       :color "white"}}
+    [:p
+     {:style/hover
+      {:color "red"}}
+     "Paragraph Content"]])
+  (hoist-styles example-hiccup)
+
+  ;; Use CSS element tag selectors, and generate a CSS string
+  (css
+   {:h1
+    {:style {:color :red}}
+    [:h2 :h3 :h4 :h5 :h6]
+    {:style/hover {:color :red}
+     :style/dark {:color :blue}}})
+  (css
+   {:div
+    {:style/dark
+     {:background-color :black :color :white}}}))

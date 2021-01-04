@@ -3,3 +3,7 @@
 out/*
 *.DS_Store
 .idea/*
+.clj-kondo/*
+.cpcache/*
+.lsp/*
+.swp

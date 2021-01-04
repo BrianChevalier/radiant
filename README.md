@@ -29,3 +29,11 @@ Inline styling using media queries and keyframes:
      [:style ".class {...}"]
      [:div {:class "class"}]]
 ```
+
+Using CSS selectors
+```clojure
+{:style 
+ {[:h1 :h2 :h3] {:color "red"}}
+ :style/light
+ {:p {:color "black"}}}
+```
