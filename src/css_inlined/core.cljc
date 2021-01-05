@@ -16,11 +16,18 @@
     (coll? k) (map normalize-css-key k)
     :else (normalize-css-keys [k])))
 
+(defn- normalize-css-value
+  [v]
+  (cond
+    (keyword? v) (name v)
+    (string? v)  v
+    (number? v)  (str v)))
+
 (defn- kv->css-attrs
   "Take a vector with a key-value pair and create css key: value
   pair for css string"
   [[k v]]
-  (str (normalize-css-key k) ":" (name v)))
+  (str (normalize-css-key k) ":" (normalize-css-value v)))
 
 (defn- css-body
   "Create the non-selector portion of a CSS map"
