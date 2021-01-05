@@ -1,14 +1,15 @@
+# css-inlined
 
-Write CSS styles with media queries inline in Hiccup and extract them to top level elements.
+Write CSS styles with media queries inline in [hiccup](https://github.com/weavejester/hiccup)
 
-Example Hiccup:
+Example hiccup:
 ```clojure
 [:div
  {:style {}}
  "content"]
 ```
 
-Inline styling using media queries and keyframes:
+Inline styling using media queries and animating with keyframes:
 ```clojure
 {:style
  {:color "black" 
@@ -23,6 +24,7 @@ Inline styling using media queries and keyframes:
   :to {:background "green"}}}
 ```
 
+Extract inline styles and return new hiccup in a wrapper div and `:style` with generated css
 ```clojure
 (hoist-styles [:div {:style {}} ...])
 => [:div
@@ -30,10 +32,24 @@ Inline styling using media queries and keyframes:
      [:div {:class "class"}]]
 ```
 
-Using CSS selectors
+Write CSS as a clojure map use similar syntax to inline styles using element tag selectors, and access to media queries.
 ```clojure
-{:style 
- {[:h1 :h2 :h3] {:color "red"}}
- :style/light
- {:p {:color "black"}}}
+ (css
+   {:h1
+    {:style {:color :red}}
+    [:h2 :h3 :h4 :h5 :h6]
+    {:style {:color :black}
+     :style/hover {:color :red}
+     :style/dark {:color :blue}}
+    :div
+    {:style/dark
+     {:background-color :black :color :white}}})
+```
+
+Extend `css-inlined/css` to define your own style handler. Use `css-inlined/selector` to generate a CSS selector
+``` clojure
+(defmethod css :style/custom
+  [sel k m]
+  ;; Your css generator here.
+  )
 ```

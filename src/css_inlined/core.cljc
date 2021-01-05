@@ -233,8 +233,6 @@
      hiccup]))
 
 (comment
-  ;; Extract inline styles, wrap in wrapper :div, and add generated css
-  ;; in a :style tag
   (def example-hiccup
     [:div
      {:style
@@ -247,6 +245,12 @@
      {:style/hover
       {:color "red"}}
      "Paragraph Content"]])
+
+  ;; Extract inline styles, return hiccup and css string
+  (extract-all-styles example-hiccup)
+
+  ;; Extract inline styles from hiccup, wrap in :div, and add generated css
+  ;; string in a :style tag
   (hoist-styles example-hiccup)
 
   ;; Use CSS element tag selectors, and generate a CSS string
@@ -254,9 +258,9 @@
    {:h1
     {:style {:color :red}}
     [:h2 :h3 :h4 :h5 :h6]
-    {:style/hover {:color :red}
-     :style/dark {:color :blue}}})
-  (css
-   {:div
+    {:style {:color :black}
+     :style/hover {:color :red}
+     :style/dark {:color :blue}}
+    :div
     {:style/dark
      {:background-color :black :color :white}}}))
