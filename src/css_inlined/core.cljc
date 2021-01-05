@@ -16,18 +16,53 @@
     (coll? k) (map normalize-css-key k)
     :else (normalize-css-keys [k])))
 
+(def accepts-unitless-values
+  ;; There may be some missing.
+  ;; https://stackoverflow.com/a/45392255
+  #{:animation-iteration-count
+    :border-image-slice
+    :border-image-width
+    :column-count
+    :counter-increment
+    :counter-reset
+    :flex
+    :flex-grow
+    :flex-shrink
+    :font-size-adjust
+    :font-weight
+    :line-height
+    :nav-index
+    :opacity
+    :order
+    :orphans
+    :tab-size
+    :widows
+    :z-index
+    :pitch-range
+    :richness
+    :speech-rate
+    :volume
+    :flood-opacity
+    :mask-box-outset
+    :mask-border-outset
+    :mask-box-width
+    :mask-border-width
+    :shape-image-threshold})
+
 (defn- normalize-css-value
-  [v]
+  "Keywords become strings, strings get passed through, numbers become strings
+  with 'px' appended unless the css property accepts unitless values"
+  [k v]
   (cond
     (keyword? v) (name v)
     (string? v)  v
-    (number? v)  (str v)))
+    (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))))
 
 (defn- kv->css-attrs
   "Take a vector with a key-value pair and create css key: value
   pair for css string"
   [[k v]]
-  (str (normalize-css-key k) ":" (normalize-css-value v)))
+  (str (normalize-css-key k) ":" (normalize-css-value k v)))
 
 (defn- css-body
   "Create the non-selector portion of a CSS map"
@@ -68,16 +103,12 @@
   The function should take a CSS class selector `cls`, the dispatch key
   (i.e. :style, :style/dark), and a map of key-value CSS styles"
   (fn
-    ([_] (-> :normalize))
+    ([_] (-> ::normalize))
     ([_cls k _map] k)))
 
-(defmethod css :normalize
-  ;; (css
-  ;; {:h1
-  ;; {:style {:color :red}}
-  ;; [:h2 :h3 :h4 :h5 :h6]
-  ;; {:style/hover {:color :red}
-  ;;  :style/dark {:color :blue}}})
+(defmethod css ::normalize
+  ;; If only one input is given assume css map. redispatch
+  ;; to css to produce css string
   [m]
   (s/join "\n"
    (mapcat (fn [[tag kv]]
@@ -103,8 +134,7 @@
 (defmethod css :style/focus-visible  [sel k m]  (pseudo sel k m))
 (defmethod css :style/focus-within   [sel k m]  (pseudo sel k m))
 
-;; MEDIA QUERIES #####
-
+;; Media queries
 (defn prefers-color-scheme [sel k m]
   (str
     "@media "
@@ -263,7 +293,7 @@
   ;; Use CSS element tag selectors, and generate a CSS string
   (css
    {:h1
-    {:style {:color :red}}
+    {:style {:color :red :font-size "12pt" :opacity 0.7 :padding 10 :margin 0}}
     [:h2 :h3 :h4 :h5 :h6]
     {:style {:color :black}
      :style/hover {:color :red}
