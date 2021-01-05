@@ -182,7 +182,7 @@
   map with the associated CSS styles removed from the map"
   [m]
   (let [cls (gensym)
-        m (inject-attr cls m)]
+        m (inject-attr {:cls cls} m)]
     {:css (s/join "\n"
             (for [[k v] m]
              (css {:cls cls} k v)))
