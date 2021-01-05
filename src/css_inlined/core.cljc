@@ -22,43 +22,36 @@
   [[k v]]
   (str (normalize-css-key k) ":" (name v)))
 
-;; Creates selectors
-(defn- class-selector
-  [cls]
-  (str "." cls))
-
-(defn- pseudo-class-selector
-  [sel]
-  (let [{:keys [cls pseudo]} sel]
-    (str "." cls ":" pseudo)))
-
-(defn- element-tag-selector
-  [tags]
-  (s/join ", " (normalize-css-keys tags)))
-
-(defn- element-tag-pseudo-class-selector
-  [sel]
-  (let [tags (get-in sel [:cls :tags])
-        pseudo (:pseudo sel)]
-    (s/join ", "
-            (for [tag tags]
-                (str (normalize-css-key tag) ":" pseudo)))))
-
-(defn- selector
-  "Normalizes call to create a CSS selector depending on the input
-  Can create a class selector, pseudo-class selector, etc."
-  [sel]
-  (cond
-    (string? sel)           (class-selector sel)
-    (and (contains? sel :pseudo) (contains? (:cls sel) :tags)) (element-tag-pseudo-class-selector sel)
-    (contains? sel :pseudo) (pseudo-class-selector sel)
-    (contains? sel :tags)   (element-tag-selector (:tags sel))))
-
-
 (defn- css-body
   "Create the non-selector portion of a CSS map"
   [m]
   (str "{" (s/join ";" (map kv->css-attrs m)) "}"))
+
+(defmulti selector
+  "Create a CSS selector given a map. Dispatch on the set of keys given"
+  (fn [sel] (set (keys sel))))
+
+(defmethod selector #{:cls}
+  [sel]
+  (let [{:keys [cls]} sel]
+    (str "." cls)))
+
+(defmethod selector #{:cls :pseudo}
+  [sel]
+  (let [{:keys [cls pseudo]} sel]
+    (str "." cls ":" pseudo)))
+
+(defmethod selector #{:tags}
+  [sel]
+  (let [{:keys [tags]} sel]
+    (s/join ", " (normalize-css-keys tags))))
+
+(defmethod selector #{:tags :pseudo}
+  [sel]
+  (let [{:keys [tags pseudo]} sel]
+    (s/join ", "
+            (for [tag tags]
+                (str (normalize-css-key tag) ":" pseudo)))))
 
 
 (defmulti css
@@ -85,73 +78,73 @@
            m)))
 
 (defmethod css :style
-  [cls _ m]
+  [sel _ m]
   (str
-    (selector cls)
+    (selector sel)
     (css-body m)))
 
 ;; Pseudo class selectors
-(defn pseudo [cls k m]
+(defn pseudo [sel k m]
   (str
-    (selector {:cls cls :pseudo (name k)})
+    (selector (assoc sel :pseudo (name k)))
     (css-body m)))
 
-(defmethod css :style/hover          [cls k m]  (pseudo cls k m))
-(defmethod css :style/focus          [cls k m]  (pseudo cls k m))
-(defmethod css :style/visited        [cls k m]  (pseudo cls k m))
-(defmethod css :style/active         [cls k m]  (pseudo cls k m))
-(defmethod css :style/focus-visible  [cls k m]  (pseudo cls k m))
-(defmethod css :style/focus-within   [cls k m]  (pseudo cls k m))
+(defmethod css :style/hover          [sel k m]  (pseudo sel k m))
+(defmethod css :style/focus          [sel k m]  (pseudo sel k m))
+(defmethod css :style/visited        [sel k m]  (pseudo sel k m))
+(defmethod css :style/active         [sel k m]  (pseudo sel k m))
+(defmethod css :style/focus-visible  [sel k m]  (pseudo sel k m))
+(defmethod css :style/focus-within   [sel k m]  (pseudo sel k m))
 
 ;; MEDIA QUERIES #####
 
-(defn prefers-color-scheme [cls k m]
+(defn prefers-color-scheme [sel k m]
   (str
     "@media "
     "(prefers-color-scheme: " (name k) ")"
     "{"
-    (css cls :style m)
+    (css sel :style m)
     "}"))
 
-(defmethod css :style/light [cls k m] (prefers-color-scheme cls k m))
-(defmethod css :style/dark  [cls k m] (prefers-color-scheme cls k m))
+(defmethod css :style/light [sel k m] (prefers-color-scheme sel k m))
+(defmethod css :style/dark  [sel k m] (prefers-color-scheme sel k m))
 
 (defmethod css :style/small
-  [cls _ m]
+  [sel _ m]
   (str
     "@media "
     "screen and (max-width: 42rem)"
     "{"
-    (css cls :style m)
+    (css sel :style m)
     "}"))
 
 (defmethod css :style/medium
-  [cls _ m]
+  [sel _ m]
   (str
     "@media "
     "screen and (min-width: 42rem) and (max-width: 64rem)"
     "{"
-    (css cls :style m)
+    (css sel :style m)
     "}"))
 
 (defmethod css :style/large
-  [cls _ m]
+  [sel _ m]
   (str
     "@media "
     "screen and (min-width: 64rem)"
     "{"
-    (css cls :style m)
+    (css sel :style m)
     "}"))
 
-(defn- animation-name [cls]
-  (str cls "_keyframes"))
+(defn- animation-name [sel]
+  (str (:cls sel) "_keyframes"))
 
 (defmethod css :style/keyframes
   ;; :style/keyframes { from: {} to: {}}}
-  [cls _ m]
+  [sel _ m]
   (str
     "@keyframes "
-    (animation-name cls)
+    (animation-name sel)
     "{"
     (s/join
       " "
@@ -168,9 +161,9 @@
 (defn- inject-attr
   "Inject an attribute in a css style.
   Used to inject a keyframe animation name"
-  [cls m]
+  [sel m]
   (if (and (contains? m :style) (contains? m :style/keyframes))
-    (assoc-in m [:style :animation-name] (animation-name cls))
+    (assoc-in m [:style :animation-name] (animation-name sel))
     m))
 
 (defn- remove-inline-styles
@@ -185,7 +178,7 @@
         m (inject-attr cls m)]
     {:css (s/join "\n"
             (for [[k v] m]
-             (css cls k v)))
+             (css {:cls cls} k v)))
      :attributes (-> m
                      (assoc :class cls)
                      (remove-inline-styles))}))
@@ -216,10 +209,9 @@
   [a v]
   (cond
     (and (vector? v) (map? (second v)))
-    (do
       (let [{:keys [css hiccup]} (extract-styles v)]
         (swap! a str css)
-        hiccup))
+        hiccup)
     :else
     v))
 
