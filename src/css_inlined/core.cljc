@@ -25,6 +25,7 @@
     :column-count
     :counter-increment
     :counter-reset
+    :columns
     :flex
     :flex-grow
     :flex-shrink
