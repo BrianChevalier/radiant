@@ -55,9 +55,13 @@
   with 'px' appended unless the css property accepts unitless values"
   [k v]
   (cond
+    (= k :content) (str "\"" v "\"")
+    (= k :grid-template-areas) (str "\"" (s/join "\" \"" (map (partial normalize-css-value nil) v)) "\"")
     (keyword? v) (name v)
     (string? v)  v
-    (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))))
+    (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))
+    (list? v)    (str (first v) "(" (s/join ", " (map (partial normalize-css-value (first v)) (rest v))) ")")
+    (vector? v)  (s/join " " (map (partial normalize-css-value k) v))))
 
 (defn- kv->css-attrs
   "Take a vector with a key-value pair and create css key: value
@@ -105,7 +109,7 @@
   (i.e. :style, :style/dark), and a map of key-value CSS styles"
   (fn
     ([_] (-> ::normalize))
-    ([_cls k _map] k)))
+    ([_sel k _map] k)))
 
 (defmethod css ::normalize
   ;; If only one input is given assume css map. redispatch
@@ -123,7 +127,7 @@
     (css-body m)))
 
 ;; Pseudo class selectors
-(defn pseudo [sel k m]
+(defn- pseudo [sel k m]
   (str
     (selector (assoc sel :pseudo (name k)))
     (css-body m)))
@@ -294,11 +298,26 @@
   ;; Use CSS element tag selectors, and generate a CSS string
   (css
    {:h1
-    {:style {:color :red :font-size "12pt" :opacity 0.7 :padding 10 :margin 0}}
+    {:style
+     {:color :red
+      :font-size "12pt"
+      :opacity 0.7
+      :transform '[(tanslate 10) (translateY 20)]
+      :background-image '(linear-gradient :red :yellow :blue)
+      :padding [10 10]
+      :margin 0}}
+
     [:h2 :h3 :h4 :h5 :h6]
     {:style {:color :black}
      :style/hover {:color :red}
      :style/dark {:color :blue}}
+
     :div
-    {:style/dark
-     {:background-color :black :color :white}}}))
+    {:style
+     {:content "content"
+      :grid-template-areas [[:header  :header]
+                            [:sidebar :body]
+                            [:footer  :footer]]}
+     :style/dark
+     {:background-color :black
+      :color :white}}}))
