@@ -50,13 +50,31 @@
     :mask-border-width
     :shape-image-threshold})
 
-(defn- normalize-css-value
-  "Keywords become strings, strings get passed through, numbers become strings
-  with 'px' appended unless the css property accepts unitless values"
+(defmulti normalize-css-value
+  "Multimethod that allows processing some css properties
+  differently, converting the css value to a css string dispatches
+  on type by default.
+  Extend this multimethod to handle special css key cases. Will be passed
+  the CSS property as a clojure keyword and the value"
+  (fn [k _] k))
+
+(defmethod normalize-css-value :content
+  ;; the content css property requires quotes around the value
+  [_ v]
+  (str "\"" v "\""))
+
+(defmethod normalize-css-value :grid-template-areas
+  ;; Given a nested vector grid template area convert to string
+  ;; with double quotes around each row specification.
+  [_ v]
+  (if (not (every? vector? v))
+    (normalize-css-value :default v)
+    (str "\"" (s/join "\" \"" (map (partial normalize-css-value :default) v)) "\"")))
+
+(defmethod normalize-css-value :default
+  ;; Dispatch on type by default
   [k v]
   (cond
-    (= k :content) (str "\"" v "\"")
-    (= k :grid-template-areas) (str "\"" (s/join "\" \"" (map (partial normalize-css-value nil) v)) "\"")
     (keyword? v) (name v)
     (string? v)  v
     (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))
