@@ -273,10 +273,10 @@
   and build up the css. Otherwise just return the item"
   [a v]
   (cond
-    (and (vector? v) (map? (second v))
-         (let [{:keys [css hiccup]} (extract-styles v)]
-           (swap! a str css)
-           hiccup))
+    (and (vector? v) (map? (second v)))
+    (let [{:keys [css hiccup]} (extract-styles v)]
+      (swap! a str css)
+      hiccup)
     :else
     v))
 
