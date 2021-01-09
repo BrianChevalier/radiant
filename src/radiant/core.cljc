@@ -6,15 +6,9 @@
   "Normalize css keyword to string"
   [k]
   (cond
+    (symbol? k)  (name k)
     (keyword? k) (name k)
     (string? k)  k))
-
-(defn- normalize-css-keys
-  "Normalize css key(s) to vector of strings"
-  [k]
-  (cond
-    (coll? k) (map normalize-css-key k)
-    :else (normalize-css-keys [k])))
 
 (def accepts-unitless-values
   ;; There may be some missing.
@@ -113,10 +107,13 @@
     (cond
       ;; Set of selectors, selects each one
       (set? tags)
-      (s/join ", " (normalize-css-keys tags))
+      (s/join ", " (map normalize-css-key tags))
       ;; vectors of selectors creates descendant selector
       (vector? tags)
-      (s/join " " (normalize-css-keys tags)))))
+      (s/join " " (map normalize-css-key tags))
+      ;; single selectors
+      (not (coll? tags))
+      (normalize-css-key tags))))
 
 (defmethod selector #{:tags :pseudo}
   [sel]
