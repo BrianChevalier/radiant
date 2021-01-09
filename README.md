@@ -76,7 +76,7 @@ By default values are converted based on the type of the value according to the 
 * vector: space separated values (each value is processed by the same type dispatch)
   * `[5 5]` -> `5px 5px`
   *  `'[(translateX 10) (translateY 20)]` -> `translateX(10px) translateY(20px)`
-  * `'(circle [75 :at :center])'` -> `circle(75px at center)`
+  * `'(circle [75 :at :center])` -> `circle(75px at center)`
 
 There are some cases where a CSS property may need to be handled differently. 
 
