@@ -76,6 +76,7 @@
   [k v]
   (cond
     (keyword? v) (name v)
+    (symbol? v)  (name v)
     (string? v)  v
     (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))
     (list? v)    (str (first v) "(" (s/join ", " (map (partial normalize-css-value (first v)) (rest v))) ")")
@@ -109,15 +110,26 @@
 (defmethod selector #{:tags}
   [sel]
   (let [{:keys [tags]} sel]
-    (s/join ", " (normalize-css-keys tags))))
+    (cond
+      ;; Set of selectors, selects each one
+      (set? tags)
+      (s/join ", " (normalize-css-keys tags))
+      ;; vectors of selectors creates descendant selector
+      (vector? tags)
+      (s/join " " (normalize-css-keys tags)))))
 
 (defmethod selector #{:tags :pseudo}
   [sel]
   (let [{:keys [tags pseudo]} sel]
-    (s/join ", "
-            (for [tag tags]
-              (str (normalize-css-key tag) ":" pseudo)))))
-
+    (cond
+      (set? tags)
+      (s/join ", "
+             (for [tag tags]
+               (str (normalize-css-key tag) ":" pseudo)))
+      (vector? tags)
+      (s/join " "
+              (for [tag tags]
+                (str (normalize-css-key tag) ":" pseudo))))))
 
 (defmulti css
           "A function that dispatches on :style or a :style namespaced key
@@ -330,7 +342,7 @@
        :padding [10 10]
        :margin 0}}
 
-     [:h2 :h3 :h4 :h5 :h6]
+     #{:h2 :h3 :h4 :h5 :h6}
      {:style {:color :black}
       :style/hover {:color :red}
       :style/dark {:color :blue}}
