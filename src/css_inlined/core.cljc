@@ -252,13 +252,18 @@
         content (if has-attributes? (drop 2 v) (drop 1 v))]
     (into [tag attributes] content)))
 
+(def ignored-tags
+  #{:code})
+
 (defn extract-styles
   "Normalize a hiccup vector and produces css based on the style keys,
   and strips style keys and values from the hiccup structure.
   Returns map with hiccup vector and CSS string"
   [v]
   (let [normal (normalize-hiccup-vector v)
-        {:keys [attributes css]} (hiccup-attribute->css (second normal))
+        tag (first normal)
+        attrs (second normal)
+        {:keys [attributes css]} (if (or (ignored-tags tag) (empty? attrs)) {:attributes attrs} (hiccup-attribute->css attrs))
         hiccup (assoc normal 1 attributes)]
     {:hiccup hiccup
      :css    css}))
@@ -268,10 +273,10 @@
   and build up the css. Otherwise just return the item"
   [a v]
   (cond
-    (and (vector? v) (map? (second v)))
+    (and (vector? v) (map? (second v))
       (let [{:keys [css hiccup]} (extract-styles v)]
         (swap! a str css)
-        hiccup)
+        hiccup))
     :else
     v))
 
@@ -300,11 +305,11 @@
        :color "black"}
       :style/dark
       {:background-color "black"
-       :color "white"}}
+       :color "white"}}]
     [:p
      {:style/hover
       {:color "red"}}
-     "Paragraph Content"]])
+     "Paragraph Content"])
 
   ;; Extract inline styles, return hiccup and css string
   (extract-all-styles example-hiccup)
@@ -315,27 +320,27 @@
 
   ;; Use CSS element tag selectors, and generate a CSS string
   (css
-   {:h1
-    {:style
-     {:color :red
-      :font-size "12pt"
-      :opacity 0.7
-      :transform '[(tanslate 10) (translateY 20)]
-      :background-image '(linear-gradient :red :yellow :blue)
-      :padding [10 10]
-      :margin 0}}
+    {:h1
+     {:style
+      {:color :red
+       :font-size "12pt"
+       :opacity 0.7
+       :transform '[(tanslateX 10) (translateY 20)]
+       :background-image '(linear-gradient :red :yellow :blue)
+       :padding [10 10]
+       :margin 0}}
 
-    [:h2 :h3 :h4 :h5 :h6]
-    {:style {:color :black}
-     :style/hover {:color :red}
-     :style/dark {:color :blue}}
+     [:h2 :h3 :h4 :h5 :h6]
+     {:style {:color :black}
+      :style/hover {:color :red}
+      :style/dark {:color :blue}}
 
-    :div
-    {:style
-     {:content "content"
-      :grid-template-areas [[:header  :header]
-                            [:sidebar :body]
-                            [:footer  :footer]]}
-     :style/dark
-     {:background-color :black
-      :color :white}}}))
+     :div
+     {:style
+      {:content "content"
+       :grid-template-areas [[:header  :header]
+                             [:sidebar :body]
+                             [:footer  :footer]]}
+      :style/dark
+      {:background-color :black
+       :color :white}}}))
