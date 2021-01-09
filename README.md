@@ -1,4 +1,4 @@
-# css-inlined
+# Radiant
 
 Write CSS styles with access to media queries and keyframe animations within [Hiccup](https://github.com/weavejester/hiccup) and all of CSS, inline. CSS styles are specified as pure Clojure data.
 
@@ -26,7 +26,7 @@ This library extends this idea of inline styling by using namespaced `style` att
   "div content"]
 ```
 
-Since these styles are written as data you only need to call functions from `css-inlined` when you're ready to generate CSS from data structures.
+Since these styles are written as data you only need to call functions from `radiant` when you're ready to generate CSS from data structures.
 
 ## Example Usage
 
@@ -67,13 +67,13 @@ By default values are converted based on the type of the value according to the 
 
 * string: passed through, without quotes
   * `"white"` -> `white`
-* keyword: passed through without preceeding `:`
+* keyword: passed through without preceding `:`
   * `:color` -> `color`
 * number: converted to string and px are added as the unit, unless the CSS key accepts dimensionless values
   * `42` -> `42px`
-* list: converted to CSS function call with comma seperated arguments
+* list: converted to CSS function call with comma separated arguments
   * `'(linear-gradient :red :yellow :blue)` -> `linear-gradient(red, yellow, blue)`
-* vector: space seperated values (each value is processed by the same type dispatch)
+* vector: space separated values (each value is processed by the same type dispatch)
   * `[5 5]` -> `5px 5px`
   *  `'[(translateX 10) (translateY 20)]` -> `translateX(10px) translateY(20px)`
   * `'(circle [75 :at :center])'` -> `circle(75px at center)`
@@ -81,7 +81,7 @@ By default values are converted based on the type of the value according to the 
 There are some cases where a CSS property may need to be handled differently. 
 
 ## Customization & Extension
-Extend `css-inlined.core/css` to define your own style handler. Use `css-inlined.core/selector` to generate a CSS selector
+Extend `radiant.core/css` to define your own style handler. Use `radiant.core/selector` to generate a CSS selector
 ``` clojure
 (defmethod css :style/custom
   [sel k m]

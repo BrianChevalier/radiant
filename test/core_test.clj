@@ -1,5 +1,5 @@
 (ns core_test
-  (:require [css-inline.core :as c]
+  (:require [radiant.core :as c]
             [clojure.test :refer :all]))
 
 (deftest my-test
