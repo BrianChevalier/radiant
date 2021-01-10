@@ -66,7 +66,8 @@
     (str "\"" (s/join "\" \"" (map (partial normalize-css-value :default) v)) "\"")))
 
 (defn- cons? [x]
-  (instance? clojure.lang.Cons x))
+  #?(:clj  (instance? clojure.lang.Cons x)
+     :cljs (instance? cljs.core.Cons x)))
 
 (defmethod normalize-css-value :default
   ;; Dispatch on type by default

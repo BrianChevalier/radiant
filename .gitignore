@@ -7,3 +7,4 @@ out/*
 .cpcache/*
 .lsp/*
 .swp
+cljs-test-runner-out/

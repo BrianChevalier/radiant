@@ -3,4 +3,6 @@
 
  :aliases
  {:test
-  {:extra-paths ["test"]}}}
+  {:extra-paths ["test"]
+   :extra-deps {org.clojure/clojurescript {:mvn/version "1.10.773"}
+                olical/cljs-test-runner {:mvn/version "3.8.0"}}}}}
