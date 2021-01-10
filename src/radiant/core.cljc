@@ -96,7 +96,7 @@
   [[k v]]
   (str (normalize-css-key k) ":" (normalize-css-value k v)))
 
-(defn css-body
+(defn css-block
   "Create the non-selector portion of a CSS map"
   [m]
   (str "{" (s/join ";" (map kv->css-attrs (sort m))) "}"))
@@ -165,13 +165,13 @@
   [sel _ m]
   (str
     (selector sel)
-    (css-body m)))
+    (css-block m)))
 
 ;; Pseudo class selectors
 (defn- pseudo [sel k m]
   (str
     (selector (assoc sel :pseudo (name k)))
-    (css-body m)))
+    (css-block m)))
 
 (defmethod css :style/hover          [sel k m]  (pseudo sel k m))
 (defmethod css :style/focus          [sel k m]  (pseudo sel k m))
@@ -236,7 +236,7 @@
                   (keyword? k) (name k)
                   (number? k) (str k "%")
                   :else k)]
-          (str k (css-body v)))))
+          (str k (css-block v)))))
     "}"))
 
 (defmethod css :default [_ _ _] "")
