@@ -65,16 +65,30 @@
     (normalize-css-value :default v)
     (str "\"" (s/join "\" \"" (map (partial normalize-css-value :default) v)) "\"")))
 
+(defn- cons? [x]
+  (instance? clojure.lang.Cons x))
+
 (defmethod normalize-css-value :default
   ;; Dispatch on type by default
   [k v]
   (cond
-    (keyword? v) (name v)
-    (symbol? v)  (name v)
-    (string? v)  v
-    (number? v)  (if (accepts-unitless-values k) (str v) (str v "px"))
-    (list? v)    (str (first v) "(" (s/join ", " (map (partial normalize-css-value (first v)) (rest v))) ")")
-    (vector? v)  (s/join " " (map (partial normalize-css-value k) v))))
+    (string? v)
+    v
+
+    (keyword? v)
+    (name v)
+
+    (symbol? v)
+    (name v)
+
+    (number? v)
+    (if (accepts-unitless-values k) (str v) (str v "px"))
+
+    (or (list? v) (cons? v))
+    (str (name (first v)) "(" (s/join ", " (map (partial normalize-css-value (first v)) (rest v))) ")")
+
+    (vector? v)
+    (s/join " " (map (partial normalize-css-value k) v))))
 
 (defn- kv->css-attrs
   "Take a vector with a key-value pair and create css key: value
@@ -82,10 +96,10 @@
   [[k v]]
   (str (normalize-css-key k) ":" (normalize-css-value k v)))
 
-(defn- css-body
+(defn css-body
   "Create the non-selector portion of a CSS map"
   [m]
-  (str "{" (s/join ";" (map kv->css-attrs m)) "}"))
+  (str "{" (s/join ";" (map kv->css-attrs (sort m))) "}"))
 
 (defmulti selector
           "Create a CSS selector given a map. Dispatch on the set of keys given"
@@ -107,7 +121,7 @@
     (cond
       ;; Set of selectors, selects each one
       (set? tags)
-      (s/join ", " (map normalize-css-key tags))
+      (s/join ", " (map normalize-css-key (sort tags)))
       ;; vectors of selectors creates descendant selector
       (vector? tags)
       (s/join " " (map normalize-css-key tags))
