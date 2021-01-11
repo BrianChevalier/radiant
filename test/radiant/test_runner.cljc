@@ -5,6 +5,7 @@
 (defn -main []
   (let [{:keys [fail error]}
         (run-tests 'radiant.core-test)
-        status (+ fail error)]
-   #?(:clj (do (shutdown-agents)
-               (System/exit status)))))
+        #_:clj-kondo/ignore status (+ fail error)]
+    #?(:clj (shutdown-agents)
+       (System/exit status)
+       :cljs (println status))))

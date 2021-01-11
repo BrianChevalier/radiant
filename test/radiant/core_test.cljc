@@ -76,7 +76,7 @@
   (testing "inline style test"
     (doall
      (for [t style-test]
-      (is (= (apply rad/css (:input t)) (:expected t)))))))
+       (is (= (apply rad/css (:input t)) (:expected t)))))))
 
 (def style-given-selector
   #{{:input {:h1 {:style {:padding 0}}}

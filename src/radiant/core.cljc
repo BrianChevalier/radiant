@@ -45,12 +45,12 @@
     :shape-image-threshold})
 
 (defmulti normalize-css-value
-          "Multimethod that allows processing some css properties
-          differently, converting the css value to a css string dispatches
-          on type by default.
-          Extend this multimethod to handle special css key cases. Will be passed
-          the CSS property as a clojure keyword and the value"
-          (fn [k _] k))
+  "Multimethod that allows processing some css properties
+   differently, converting the css value to a css string dispatches
+   on type by default.
+   Extend this multimethod to handle special css key cases. Will be passed
+   the CSS property as a clojure keyword and the value"
+  (fn [k _] k))
 
 (defmethod normalize-css-value :content
   ;; the content css property requires quotes around the value
@@ -103,8 +103,8 @@
   (str "{" (s/join ";" (map kv->css-attrs (sort m))) "}"))
 
 (defmulti selector
-          "Create a CSS selector given a map. Dispatch on the set of keys given"
-          (fn [sel] (set (keys sel))))
+  "Create a CSS selector given a map. Dispatch on the set of keys given"
+  (fn [sel] (set (keys sel))))
 
 (defmethod selector #{:cls}
   [sel]
@@ -136,22 +136,22 @@
     (cond
       (set? tags)
       (s/join ", "
-             (for [tag tags]
-               (str (normalize-css-key tag) ":" pseudo)))
+              (for [tag tags]
+                (str (normalize-css-key tag) ":" pseudo)))
       (vector? tags)
       (s/join " "
               (for [tag tags]
                 (str (normalize-css-key tag) ":" pseudo))))))
 
 (defmulti css
-          "A function that dispatches on :style or a :style namespaced key
+  "A function that dispatches on :style or a :style namespaced key
 
-          Extend this multimethod to add additional styles to extract from a hiccup tree
-          The function should take a CSS class selector `cls`, the dispatch key
-          (i.e. :style, :style/dark), and a map of key-value CSS styles"
-          (fn
-            ([_] (-> ::normalize))
-            ([_sel k _map] k)))
+   Extend this multimethod to add additional styles to extract from a hiccup tree
+   The function should take a CSS class selector `cls`, the dispatch key
+   (i.e. :style, :style/dark), and a map of key-value CSS styles"
+  (fn
+    ([_] (-> ::normalize))
+    ([_sel k _map] k)))
 
 (defmethod css ::normalize
   ;; If only one input is given assume css map. redispatch
@@ -165,14 +165,14 @@
 (defmethod css :style
   [sel _ m]
   (str
-    (selector sel)
-    (css-block m)))
+   (selector sel)
+   (css-block m)))
 
 ;; Pseudo class selectors
 (defn- pseudo [sel k m]
   (str
-    (selector (assoc sel :pseudo (name k)))
-    (css-block m)))
+   (selector (assoc sel :pseudo (name k)))
+   (css-block m)))
 
 (defmethod css :style/hover          [sel k m]  (pseudo sel k m))
 (defmethod css :style/focus          [sel k m]  (pseudo sel k m))
@@ -184,11 +184,11 @@
 ;; Media queries
 (defn prefers-color-scheme [sel k m]
   (str
-    "@media "
-    "(prefers-color-scheme: " (name k) ")"
-    "{"
-    (css sel :style m)
-    "}"))
+   "@media "
+   "(prefers-color-scheme: " (name k) ")"
+   "{"
+   (css sel :style m)
+   "}"))
 
 (defmethod css :style/light [sel k m] (prefers-color-scheme sel k m))
 (defmethod css :style/dark  [sel k m] (prefers-color-scheme sel k m))
@@ -196,29 +196,29 @@
 (defmethod css :style/small
   [sel _ m]
   (str
-    "@media "
-    "screen and (max-width: 42rem)"
-    "{"
-    (css sel :style m)
-    "}"))
+   "@media "
+   "screen and (max-width: 42rem)"
+   "{"
+   (css sel :style m)
+   "}"))
 
 (defmethod css :style/medium
   [sel _ m]
   (str
-    "@media "
-    "screen and (min-width: 42rem) and (max-width: 64rem)"
-    "{"
-    (css sel :style m)
-    "}"))
+   "@media "
+   "screen and (min-width: 42rem) and (max-width: 64rem)"
+   "{"
+   (css sel :style m)
+   "}"))
 
 (defmethod css :style/large
   [sel _ m]
   (str
-    "@media "
-    "screen and (min-width: 64rem)"
-    "{"
-    (css sel :style m)
-    "}"))
+   "@media "
+   "screen and (min-width: 64rem)"
+   "{"
+   (css sel :style m)
+   "}"))
 
 (defn- animation-name [sel]
   (str (:cls sel) "_keyframes"))
@@ -227,18 +227,18 @@
   ;; :style/keyframes { from: {} to: {}}}
   [sel _ m]
   (str
-    "@keyframes "
-    (animation-name sel)
-    "{"
-    (s/join
-      " "
-      (for [[k v] m]
-        (let [k (cond
-                  (keyword? k) (name k)
-                  (number? k) (str k "%")
-                  :else k)]
-          (str k (css-block v)))))
-    "}"))
+   "@keyframes "
+   (animation-name sel)
+   "{"
+   (s/join
+    " "
+    (for [[k v] m]
+      (let [k (cond
+                (keyword? k) (name k)
+                (number? k) (str k "%")
+                :else k)]
+        (str k (css-block v)))))
+   "}"))
 
 (defmethod css :default [_ _ _] "")
 
@@ -344,27 +344,27 @@
 
   ;; Use CSS element tag selectors, and generate a CSS string
   (css
-    {:h1
-     {:style
-      {:color :red
-       :font-size "12pt"
-       :opacity 0.7
-       :transform '[(tanslateX 10) (translateY 20)]
-       :background-image '(linear-gradient :red :yellow :blue)
-       :padding [10 10]
-       :margin 0}}
+   {:h1
+    {:style
+     {:color :red
+      :font-size "12pt"
+      :opacity 0.7
+      :transform '[(tanslateX 10) (translateY 20)]
+      :background-image '(linear-gradient :red :yellow :blue)
+      :padding [10 10]
+      :margin 0}}
 
-     #{:h2 :h3 :h4 :h5 :h6}
-     {:style {:color :black}
-      :style/hover {:color :red}
-      :style/dark {:color :blue}}
+    #{:h2 :h3 :h4 :h5 :h6}
+    {:style {:color :black}
+     :style/hover {:color :red}
+     :style/dark {:color :blue}}
 
-     :div
-     {:style
-      {:content "content"
-       :grid-template-areas [[:header  :header]
-                             [:sidebar :body]
-                             [:footer  :footer]]}
-      :style/dark
-      {:background-color :black
-       :color :white}}}))
+    :div
+    {:style
+     {:content "content"
+      :grid-template-areas [[:header  :header]
+                            [:sidebar :body]
+                            [:footer  :footer]]}
+     :style/dark
+     {:background-color :black
+      :color :white}}}))
