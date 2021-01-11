@@ -5,4 +5,10 @@
  {:test
   {:extra-paths ["test"]
    :extra-deps {org.clojure/clojurescript {:mvn/version "1.10.773"}
-                olical/cljs-test-runner {:mvn/version "3.8.0"}}}}}
+                olical/cljs-test-runner {:mvn/version "3.8.0"}}}
+  :kondo
+  {:main-opts ["-m" "clj-kondo.main"]
+   :extra-deps {clj-kondo/clj-kondo {:mvn/version "2020.12.12"}}}
+  :cljfmt
+  {:main-opts ["-m" "cljfmt.main"]
+   :extra-deps {cljfmt/cljfmt {:mvn/version "0.7.0"}}}}}
