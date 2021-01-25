@@ -8,3 +8,6 @@ out/*
 .lsp/*
 .swp
 cljs-test-runner-out/
+target/
+node_modules/
+.shadow-cljs/

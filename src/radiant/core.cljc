@@ -299,7 +299,7 @@
   (cond
     (and (vector? v) (map? (second v)))
     (let [{:keys [css hiccup]} (extract-styles v)]
-      (swap! a str css)
+      (swap! a str (str css "\n"))
       hiccup)
     :else
     v))

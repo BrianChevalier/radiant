@@ -6,6 +6,13 @@
   {:extra-paths ["test"]
    :extra-deps {org.clojure/clojurescript {:mvn/version "1.10.773"}
                 olical/cljs-test-runner {:mvn/version "3.8.0"}}}
+  :demo
+  {:extra-paths ["demo"]
+   :main-opts ["-m" "shadow.cljs.devtools.cli"]
+   :extra-deps {hickory/hickory {:mvn/version "0.7.1"}
+                reagent/reagent {:mvn/version "1.0.0"}
+                hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
+                thheller/shadow-cljs {:mvn/version "2.11.10"}}}
   :kondo
   {:main-opts ["-m" "clj-kondo.main"]
    :extra-deps {clj-kondo/clj-kondo {:mvn/version "2020.12.12"}}}

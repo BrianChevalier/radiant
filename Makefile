@@ -1,6 +1,17 @@
 
 .PHONY: dev test
 
+index:
+	mkdir -p target/resources
+	touch target/resources/index.html
+	bb -cp demo -m demo.index > target/resources/index.html
+
+node_modules: package.json package-lock.json
+	npm ci
+
+dev: node_modules index
+	clojure -M:demo watch demo
+
 test/clj:
 	clojure -M:test -m radiant.test-runner
 

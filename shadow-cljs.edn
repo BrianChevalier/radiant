@@ -1,0 +1,14 @@
+{:deps {:aliases [:demo]}
+ :dev-http {8080 "target/resources"}
+ :source-paths ["src" "demo"]
+ :builds
+ {:demo
+  {:output-dir "target/resources/"
+   :asset-path "."
+   :target :browser
+   :compiler-options
+   {:infer-externs true
+    :warnings-as-errors true}
+   :modules {:main {:init-fn demo.core/main!}}
+   :release {:output-dir "target/resources/"}
+   :devtools {:after-load demo.core/reload!}}}}
