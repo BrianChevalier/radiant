@@ -203,7 +203,7 @@ h1, h2, h3, h4, h5, p, li {font-family: sans-serif}"]
         CSS as regular Clojure data structures"]]]
    [example-section
     [:div
-     [:style "code:scope {border-radius: 3px;font-size:0.8rem; background-color: #434C5E;color:#ECEFF4;padding:0px 5px;margin:5px;} li {margin:5px}"]
+     [:style "li code {border-radius: 3px;font-size:0.9rem; background-color: #4C566A;color:#ECEFF4;padding:0px 5px;margin:5px;} li {margin:5px}"]
      [:h2 "Express CSS as Data"]
      [:p "By default values are converted based on the type of the
           value according to the following:"]
