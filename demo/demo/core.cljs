@@ -2,71 +2,12 @@
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]
             [radiant.core :as rad]
+            [radiant.reagent :refer [div pre code textarea]]
             [clojure.edn :as edn]
-            [hickory.core :as hic]
-            ["react-simple-code-editor" :as e]
             ["highlight.js/lib/core" :as hljs]
-            [clojure.string :as str]
             ["highlight.js/lib/languages/clojure" :as hljsclj]
             ["highlight.js/lib/languages/css" :as hljscss]
             [clojure.pprint :as pprint]))
-
-;; -------------------------
-;; Views
-
-
-(defonce cache (atom {}))
-
-(defn- generate-class [selector style]
-  (when-not (empty? style)
-    (let [k  (gensym)
-          el (js/document.createElement "style")]
-      (set! (.-innerHTML el)
-            (rad/css {:cls k} selector style))
-      (.appendChild js/document.head el)
-      (swap! cache assoc [selector style] k)
-      k)))
-
-(defn- get-class [selector style]
-  (or (get @cache [selector style])
-      (generate-class selector style)))
-
-(defn- attrs->css [attrs]
-  (reduce
-   (fn [attrs selector]
-     (if-not (contains? attrs selector)
-       attrs
-       (let [style (get attrs selector)
-             class (get-class selector style)]
-         (-> attrs
-             (dissoc selector)
-             (update :class str " " class)))))
-   attrs
-   (keys (methods rad/css))))
-
-(defn styled [component attrs & children]
-  (into [component
-         (if-not (map? attrs)
-           attrs
-           (attrs->css attrs))]
-        children))
-
-(def a      (partial styled :a))
-(def table  (partial styled :table))
-(def tbody  (partial styled :tbody))
-(def thead  (partial styled :thead))
-(def tr     (partial styled :tr))
-(def th     (partial styled :th))
-(def td     (partial styled :td))
-(def div    (partial styled :div))
-(def span   (partial styled :span))
-(def input  (partial styled :input))
-(def button (partial styled :button))
-(def img    (partial styled :img))
-(def iframe (partial styled :iframe))
-(def code (partial styled :code))
-(def pre (partial styled :pre))
-(def textarea      (partial styled :textarea))
 
 (defn highlight [x]
   (->> x
@@ -251,12 +192,6 @@ h1, h2, h3, h4, h5, p, li {font-family: sans-serif}"]
              :background '(linear-gradient "120deg" "#2E3440" "#2E3440")}}
     [:h1 {:style {:color "#D8DEE9" :opacity 0.9}} "Radiant CSS"]
     [:h2 {:style {:color "#D8DEE9" :opacity 0.5}} "Write CSS as Clojure Data Structures"]]
-   [:button
-    {:on-click (fn []
-                 (->
-                  (js/fetch "https://jsonplaceholder.typicode.com/posts")
-                  (.then #(.json %))
-                  (.then #(js/console.log (:title (first (js->clj % :keywordize-keys true)))))))}]
    ;; First example
    [example-section
      [:div
