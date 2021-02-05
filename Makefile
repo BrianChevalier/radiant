@@ -39,7 +39,7 @@ release:
 test/ui:
 	python -m http.server 8000 --directory $(DIR)
 
-site: release
+site: index release
 	git branch -D $(DEPLOYBRANCH) || echo 'skip'
 	rm -rf $(TEMPDIR)
 	cp -r ./public $(TEMPDIR)
