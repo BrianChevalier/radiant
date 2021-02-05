@@ -1,6 +1,7 @@
 .PHONY: dev test
 DEPLOYBRANCH=gh-pages
-DIR=target/resources/
+SOURCEDIR=target/resources/
+TEMPDIR=target/gh-pages
 
 index:
 	mkdir -p target/resources
@@ -40,13 +41,14 @@ test/ui:
 
 site: release
 	git branch -D $(DEPLOYBRANCH) || echo 'skip'
-	rm -rf $(DIR)
-	cp -r ./public $(DIR)
-	git --git-dir=.git --work-tree="$(DIR)" checkout --orphan $(DEPLOYBRANCH)
-	git --git-dir=.git --work-tree="$(DIR)" add .
-	git --git-dir=.git --work-tree="$(DIR)" commit -m 'Build site'
-	git --git-dir=.git --work-tree="$(DIR)" checkout main -f
-	rm -rf $(DIR)
+	rm -rf $(TEMPDIR)
+	cp -r ./public $(TEMPDIR)
+	cp -r $(SOURCEDIR) $(TEMPDIR)
+	git --git-dir=.git --work-tree="$(TEMPDIR)" checkout --orphan $(DEPLOYBRANCH)
+	git --git-dir=.git --work-tree="$(TEMPDIR)" add .
+	git --git-dir=.git --work-tree="$(TEMPDIR)" commit -m 'Build site'
+	git --git-dir=.git --work-tree="$(TEMPDIR)" checkout main -f
+	rm -rf $(TEMPDIR)
 
 deploy: site
 	git checkout gh-pages
