@@ -1,6 +1,6 @@
 (ns radiant.core
-  (:require [clojure.string :as s]
-            [clojure.walk :as w]))
+  "Core functions for converting Clojure data to CSS"
+  (:require [clojure.string :as s]))
 
 (defn- normalize-css-key
   "Normalize css keyword to string"
@@ -149,18 +149,7 @@
    Extend this multimethod to add additional styles to extract from a hiccup tree
    The function should take a CSS class selector `cls`, the dispatch key
    (i.e. :style, :style/dark), and a map of key-value CSS styles"
-  (fn
-    ([_] (-> ::normalize))
-    ([_sel k _map] k)))
-
-(defmethod css ::normalize
-  ;; If only one input is given assume css map. redispatch
-  ;; to css to produce css string
-  [m]
-  (s/join "\n"
-          (mapcat (fn [[tag kv]]
-                    (map (fn [[k v]] (css {:tags tag} k v)) kv))
-                  m)))
+  (fn [_sel k _map] k))
 
 (defmethod css :style
   [sel _ m]
@@ -242,129 +231,11 @@
 
 (defmethod css :default [_ _ _] "")
 
-(defn- inject-attr
-  "Inject an attribute in a css style.
-  Used to inject a keyframe animation name"
-  [sel m]
-  (if (and (contains? m :style) (contains? m :style/keyframes))
-    (assoc-in m [:style :animation-name] (animation-name sel))
-    m))
-
-(defn- remove-inline-styles
+(defn style
+  "Accepts a css map keyed by selectors"
   [m]
-  (apply dissoc m (keys (methods css))))
-
-(defn- hiccup-attribute->css
-  "Given a hiccup attribute map, returns produced CSS and the updated attribute
-  map with the associated CSS styles removed from the map"
-  [m]
-  (let [cls (gensym)
-        m (inject-attr {:cls cls} m)]
-    {:css (s/join "\n"
-                  (for [[k v] m]
-                    (css {:cls cls} k v)))
-     :attributes (-> m
-                     (assoc :class cls)
-                     (remove-inline-styles))}))
-
-(defn- normalize-hiccup-vector
-  "Takes a vector and normalizes it to [:tag {attributes...} content...]"
-  [v]
-  (let [tag (first v)
-        has-attributes? (map? (second v))
-        attributes (if has-attributes? (second v) {})
-        content (if has-attributes? (drop 2 v) (drop 1 v))]
-    (into [tag attributes] content)))
-
-(def ignored-tags
-  #{:code})
-
-(defn extract-styles
-  "Normalize a hiccup vector and produces css based on the style keys,
-  and strips style keys and values from the hiccup structure.
-  Returns map with hiccup vector and CSS string"
-  [v]
-  (let [normal (normalize-hiccup-vector v)
-        tag (first normal)
-        attrs (second normal)
-        {:keys [attributes css]} (if (or (ignored-tags tag) (empty? attrs)) {:attributes attrs} (hiccup-attribute->css attrs))
-        hiccup (assoc normal 1 attributes)]
-    {:hiccup hiccup
-     :css    css}))
-
-(defn- inspect-item
-  "Inspect the item, v. If it's an outer hiccup vector process the vector
-  and build up the css. Otherwise just return the item"
-  [a v]
-  (cond
-    (and (vector? v) (map? (second v)))
-    (let [{:keys [css hiccup]} (extract-styles v)]
-      (swap! a str (str css "\n"))
-      hiccup)
-    :else
-    v))
-
-(defn extract-all-styles
-  "Traverse hiccup tree from the outside in.
-  Accumulates a new hiccup structure with style attributes stripped
-  and creates a css string"
-  [v]
-  (let [css (atom "")]
-    {:hiccup (w/prewalk (partial inspect-item css) v)
-     :css    (s/trim @css)}))
-
-(defn hoist-styles
-  "Extracts hiccup element styles and injects them in a top level div"
-  [v]
-  (let [{:keys [hiccup css]} (extract-all-styles v)]
-    [:div
-     [:style css]
-     hiccup]))
-
-(comment
-  (def example-hiccup
-    [:div
-     {:style
-      {:background-color "white"
-       :color "black"}
-      :style/dark
-      {:background-color "black"
-       :color "white"}}]
-    [:p
-     {:style/hover
-      {:color "red"}}
-     "Paragraph Content"])
-
-  ;; Extract inline styles, return hiccup and css string
-  (extract-all-styles example-hiccup)
-
-  ;; Extract inline styles from hiccup, wrap in :div, and add generated css
-  ;; string in a :style tag
-  (hoist-styles example-hiccup)
-
-  ;; Use CSS element tag selectors, and generate a CSS string
-  (css
-   {:h1
-    {:style
-     {:color :red
-      :font-size "12pt"
-      :opacity 0.7
-      :transform '[(tanslateX 10) (translateY 20)]
-      :background-image '(linear-gradient :red :yellow :blue)
-      :padding [10 10]
-      :margin 0}}
-
-    #{:h2 :h3 :h4 :h5 :h6}
-    {:style {:color :black}
-     :style/hover {:color :red}
-     :style/dark {:color :blue}}
-
-    :div
-    {:style
-     {:content "content"
-      :grid-template-areas [[:header  :header]
-                            [:sidebar :body]
-                            [:footer  :footer]]}
-     :style/dark
-     {:background-color :black
-      :color :white}}}))
+  (s/join
+   "\n"
+   (mapcat (fn [[tag kv]]
+             (map (fn [[k v]] (css {:tags tag} k v)) kv))
+           m)))

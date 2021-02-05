@@ -36,7 +36,7 @@ lint: check/clj-kondo check/cljfmt
 release:
 	clojure -M:demo release demo
 
-test/ui:
+test/ui: release
 	python -m http.server 8000 --directory $(DIR)
 
 site: index release

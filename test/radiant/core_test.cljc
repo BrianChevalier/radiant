@@ -104,4 +104,4 @@
   (testing "Test css with given selectors"
     (doall
      (for [t style-given-selector]
-       (is (= (rad/css (:input t)) (:expected t)))))))
+       (is (= (rad/style (:input t)) (:expected t)))))))

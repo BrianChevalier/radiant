@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]
             [radiant.core :as rad]
+            [radiant.hiccup :as radh]
             [radiant.reagent :refer [div pre code textarea]]
             [clojure.edn :as edn]
             ["highlight.js/lib/core" :as hljs]
@@ -100,7 +101,7 @@
   (let [local-state (r/atom :preview)]
     (fn []
      (let [{:keys [css hiccup]}
-           (rad/extract-all-styles
+           (radh/extract-all-styles
             (edn/read-string @content))]
        [:div
         [segmented-control
