@@ -18,7 +18,7 @@
       td {font-family: 'Roboto', sans-serif;
       height: 20px;}
       code {font-family: 'Roboto Mono', monospace;}
-      body {margin: 0px; background-color: #2e3440;}
+      body {margin: 0px; background-color: #292E39;}
       input::-webkit-outer-spin-button,
       input::-webkit-inner-spin-button {
         display: none;

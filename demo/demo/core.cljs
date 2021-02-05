@@ -50,7 +50,7 @@
          :autoCorrect "off"
          :autoCapitalize "off"
          :spellCheck "false"
-         :style/focus {:border [3 :solid (if @valid? "#5E81AC" "#BF616A")]}
+         :style/focus {:border [3 :solid (if @valid? "#2E3440" "#BF616A")]}
          :style (merge sty {:box-shadow '[(rgba "15" "17" "21" "0.2") 0 3 6 0]
                             :color "rgba(255, 255, 255, 0)"
                             :caret-color :white
@@ -79,7 +79,7 @@
   "{:key key :label label}"
   [state on-select options & _]
   (let [selected-color "#D8DEE9"
-        unselected-color "#2E3440"]
+        unselected-color "#4C566A"]
     [div
     {:style {:display :flex
              :flex-direction :row
@@ -119,7 +119,7 @@
                                :font-size "1rem"
                                :border-radius 7
                                :padding 10
-                               :background-color "#2e3440"}}
+                               :background-color "#2E3440"}}
                       [code
                        {:style {:overflow :scroll}
                         :dangerouslySetInnerHTML
@@ -130,7 +130,7 @@
                                :font-size "1rem"
                                :border-radius 7
                                :padding 10
-                               :background-color "#2e3440"}}
+                               :background-color "#2E3440"}}
                       [code
                        {:dangerouslySetInnerHTML
                         {:__html (->> css (hljs/highlight "css") .-value)}}]]])]))))
