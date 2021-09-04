@@ -167,16 +167,27 @@
        [code-editor code]]
       [div
        {:style
-        {:overflow :scroll
+        {:overflow :auto
          :margin 20
          :grid-area :outputarea}}
    ;    [:h3  {:style {:opacity 0.5}} "Output"]
        [preview-view code]]])))
 
+(defn scrollbars []
+  (let [thumb "rgba(0,0,0,0.3)"]
+    [:style
+     (str "* { scrollbar-color: " thumb " rgba(0,0,0,0); } "
+          "*::-webkit-scrollbar { width: 10px; height: 10px; }"
+          "*::-webkit-scrollbar-corner { opacity: 0 }"
+          "*::-webkit-scrollbar-track  { opacity: 0 }"
+          "*::-webkit-scrollbar-thumb  { background-color: " thumb "; }"
+          "*::-webkit-scrollbar-thumb  { border-radius: 10px; }")]))
+
 (defn home-page []
   [div
    {:style {:margin 0
             :padding 0}}
+   [scrollbars]
    [:link {:rel "stylesheet"
            :href "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/nord.min.css"
            :integrity "sha512-igI4zzTHEU3IASS/ojMD7tO6hScqpnEnz41u+xVRNZvZEaF3XaCdre0qZ08frR1hri9+aSNeAXlQz1DS3luvxA=="
